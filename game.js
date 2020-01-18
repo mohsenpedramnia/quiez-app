@@ -1,7 +1,6 @@
 const question = document.getElementById("question");
 // convert html collection to array
 const choices = Array.from(document.getElementsByClassName("choice-text"));
-console.log(choices);
 
 // create variables
 let currentQuestion = {};
@@ -66,7 +65,7 @@ getNewQuestion = () => {
   });
 
   availableQuestions.splice(questionIndex, 1);
-  console.log(availableQuestions);
+
   acceptingAnswers = true;
 };
 
@@ -77,8 +76,17 @@ choices.forEach(choice => {
     acceptingAnswers = false;
     const selectedChoice = e.target;
     const selectedAnswer = selectedChoice.dataset["number"];
-    console.log(selectedAnswer);
-    getNewQuestion();
+
+    const classToApply =
+      selectedAnswer == currentQuestion.answer ? "correct" : "incorrect";
+    console.log(classToApply);
+
+    selectedChoice.parentElement.classList.add(classToApply);
+
+    setTimeout(() => {
+      selectedChoice.parentElement.classList.remove(classToApply);
+      getNewQuestion();
+    }, 1000);
   });
 });
 
