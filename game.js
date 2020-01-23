@@ -1,60 +1,77 @@
 const question = document.getElementById("question");
-
 // convert html collection to array
 const choices = Array.from(document.getElementsByClassName("choice-text"));
 
 // our hud reference to javascript
 const progressText = document.getElementById("progressText");
 const scoreText = document.getElementById("score");
-const ProgressBarFull = document.getElementById("ProgressBarFull");
-
+const progressBarFull = document.getElementById("progressBarFull");
 // create variables
 let currentQuestion = {};
-// user cant answer before have everything is loaded
 let acceptingAnswers = false;
 let score = 0;
 let questionCounter = 0;
-let availableQuestions = [];
+let availableQuesions = [];
 
 let questions = [];
 
-fetch("questions.json")
+fetch(
+  "https://opentdb.com/api.php?amount=10&category=9&difficulty=easy&type=multiple"
+)
   .then(res => {
     return res.json();
   })
   .then(loadedQuestions => {
-    console.log(loadedQuestions);
-    questions = loadedQuestions;
+    console.log(loadedQuestions.results);
+    questions = loadedQuestions.results.map(loadedQuestion => {
+      const formattedQuestion = {
+        question: loadedQuestion.question
+      };
+
+      const answerChoices = [...loadedQuestion.incorrect_answers];
+      formattedQuestion.answer = Math.floor(Math.random() * 3) + 1;
+      answerChoices.splice(
+        formattedQuestion.answer - 1,
+        0,
+        loadedQuestion.correct_answer
+      );
+
+      answerChoices.forEach((choice, index) => {
+        formattedQuestion["choice" + (index + 1)] = choice;
+      });
+
+      return formattedQuestion;
+    });
     startGame();
   })
   .catch(err => {
     console.error(err);
   });
 
-// CONSTANTS
+//CONSTANTS
 const CORRECT_BONUS = 10;
 const MAX_QUESTIONS = 3;
 
 startGame = () => {
   questionCounter = 0;
   score = 0;
-  availableQuestions = [...questions];
+  availableQuesions = [...questions];
   getNewQuestion();
 };
 
 getNewQuestion = () => {
-  if (availableQuestions.length === 0 || questionCounter >= MAX_QUESTIONS) {
+  if (availableQuesions.length === 0 || questionCounter >= MAX_QUESTIONS) {
     localStorage.setItem("mostRecentScore", score);
     //go to the end page
     return window.location.assign("/end.html");
   }
   questionCounter++;
-  progressText.innerText = ` Question ${questionCounter}/${MAX_QUESTIONS}`;
-  // Update the progress bar
+  progressText.innerText = `Question ${questionCounter}/${MAX_QUESTIONS}`;
+  //Update the progress bar
   progressBarFull.style.width = `${(questionCounter / MAX_QUESTIONS) * 100}%`;
 
-  const questionIndex = Math.floor(Math.random() * availableQuestions.length);
-  currentQuestion = availableQuestions[questionIndex];
+  const questionIndex = Math.floor(Math.random() * availableQuesions.length);
+  currentQuestion = availableQuesions[questionIndex];
   question.innerText = currentQuestion.question;
 
   choices.forEach(choice => {
@@ -62,7 +79,7 @@ getNewQuestion = () => {
     choice.innerText = currentQuestion["choice" + number];
   });
 
-  availableQuestions.splice(questionIndex, 1);
+  availableQuesions.splice(questionIndex, 1);
   acceptingAnswers = true;
 };
 
